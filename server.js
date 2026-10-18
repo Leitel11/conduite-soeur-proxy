@@ -124,8 +124,11 @@ Le passager "${playerName}" dit / fait : "${message}"`;
 
         const previousInteractionId = vehicleInteractions.get(vehicleId);
 
+        // Modèle dynamique : Gemini 3.8 Flash pour les VIP (GamePass Moniteur), et Gemini 3.1 Flash-Lite ultra-éco pour les joueurs gratuits
+        const chosenModel = isVip ? "gemini-3.8-flash" : "gemini-3.1-flash-lite";
+
         const interactionParams = {
-            model: "gemini-3.8-flash",
+            model: chosenModel,
             system_instruction: SYSTEM_INSTRUCTION,
             input: promptInput,
             response_format: [
