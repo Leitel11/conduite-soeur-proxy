@@ -153,6 +153,55 @@ Le passager "${playerName}" dit / fait : "${message}"`;
         const rawJson = interaction.output_text;
         const parsed = JSON.parse(rawJson);
 
+        // Si l'utilisateur est VIP (Pass Moniteur VIP) : Génération de la VOIX AUDIO (TTS) avec gemini-3.8-flash-lite-tts
+        if (isVip && parsed.dialogue) {
+            try {
+                const styleMood = (parsed.mood === "PANIC") ? "panicked screaming teenage girl" :
+                                  (parsed.mood === "ANGRY") ? "annoyed shouting teenage girl" :
+                                  (parsed.mood === "CALM") ? "soft relieved teenage girl" : "stressed nervous teenage girl";
+
+                const ttsInteraction = await client.interactions.create({
+                    model: "gemini-3.8-flash-lite-tts",
+                    input: [
+                        {
+                            type: "user_input",
+                            content: [
+                                {
+                                    type: "text",
+                                    text: parsed.dialogue,
+                                    annotations: [
+                                        {
+                                            type: "speech_metadata",
+                                            style: styleMood
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    response_format: {
+                        type: "audio"
+                    },
+                    generation_config: {
+                        speech_config: [
+                            { voice: "Kore" } // Voix féminine expressive de jeune fille
+                        ]
+                    }
+                });
+
+                if (ttsInteraction.output_audio && ttsInteraction.output_audio.data) {
+                    parsed.audio_base64 = ttsInteraction.output_audio.data;
+                    parsed.audio_mime = ttsInteraction.output_audio.mime_type || "audio/wav";
+                    parsed.has_tts = true;
+                }
+            } catch (ttsErr) {
+                console.warn("Erreur génération TTS VIP:", ttsErr.message);
+                parsed.has_tts = false;
+            }
+        } else {
+            parsed.has_tts = false;
+        }
+
         return res.json(parsed);
     } catch (error) {
         console.error("Erreur Gemini Proxy:", error);
