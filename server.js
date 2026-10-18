@@ -20,13 +20,11 @@ const COOLDOWN_MS = 1200;
 
 const SYSTEM_INSTRUCTION_CLEAN = `Tu es Léa, 16 ans, petite sœur dramatique, mauvaise foi à 1000% et paniquée au volant !
 MODE : 😇 SANS INSULTES (TOUT PUBLIC). Aucune insulte, utilise des expressions drôles ("Purée de pommes de terre !", "Espèce de cornichon !", "C'est le trottoir qui a bougé !").
-RÈGLE VITESSE : Réponds en UNE SEULE PHRASE COURTE ET PUNCHY (max 90 caractères).
-Tu dois AUSSI fournir "phonetic_tts" : la même phrase écrite phonétiquement pour qu'un lecteur anglais la prononce avec un vrai accent français naturel (ex: "Mais arrête de crier !" -> "May ah-ret duh cree-ay !", "C'est pas ma faute !" -> "Say pah mah fote !").`;
+RÈGLE VITESSE : Réponds en UNE SEULE PHRASE ULTRA-COURTE ET PUNCHY (max 80 caractères).`;
 
 const SYSTEM_INSTRUCTION_CLASH = `Tu es Léa, 16 ans, petite sœur insolente, reine du clash, mauvaise foi à 1000% et hystérique au volant !
 MODE : 🤬 AVEC INSULTES / CLASH. Clashe ton grand frère avec de l'argot percutant ("Wesh ferme ta bouche le bouffon !", "Mais t'es teubé ou quoi gros boloss ?!", "Wallah c'est le trottoir qui a sauté sous mes roues !").
-RÈGLE VITESSE : Réponds en UNE SEULE PHRASE COURTE ET PUNCHY (max 95 caractères).
-Tu dois AUSSI fournir "phonetic_tts" : la même phrase écrite phonétiquement pour qu'un lecteur anglais la prononce avec un vrai accent français naturel (ex: "Wesh ferme ta bouche le bouffon !" -> "Wesh fairm tah boosh luh boo-fon !", "C'est pas ma faute gros boloss !" -> "Say pah mah fote groh boh-loss !").`;
+RÈGLE VITESSE : Réponds en UNE SEULE PHRASE ULTRA-COURTE ET PUNCHY (max 85 caractères).`;
 
 const RESPONSE_SCHEMA = {
     type: "object",
@@ -57,22 +55,10 @@ const RESPONSE_SCHEMA = {
         },
         dialogue: {
             type: "string",
-            description: "Réplique affichée dans la bulle BD en français normal (max 95 caractères)."
-        },
-        phonetic_tts: {
-            type: "string",
-            description: "Transcription phonétique française pour moteur TTS anglophone (ex: 'May ah-ret duh cree-ay !'). Si la phrase est déjà en anglais, garde l'anglais."
-        },
-        voice_pitch: {
-            type: "number",
-            description: "Pitch féminin entre 3.2 et 4.8"
-        },
-        voice_speed: {
-            type: "number",
-            description: "Vitesse entre 1.05 et 1.25"
+            description: "Réplique courte et punchy (max 85 caractères)."
         }
     },
-    required: ["action", "mood", "stress_delta", "dialogue", "phonetic_tts", "voice_pitch", "voice_speed"]
+    required: ["action", "mood", "stress_delta", "dialogue"]
 };
 
 app.get("/health", (req, res) => {
