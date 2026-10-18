@@ -20,18 +20,25 @@ const vehicleInteractions = new Map();
 const vehicleCooldowns = new Map();
 const COOLDOWN_MS = 3000;
 
-const SYSTEM_INSTRUCTION = `Tu es Léa, 16 ans, la petite sœur ultra-dramatique, insolente, sarcastique, mauvaise foi à 1000%, accro à TikTok et complètement paniquée au volant pendant sa conduite accompagnée !
-Les joueurs dans la voiture sont tes grands frères / moniteurs relous (ou des trolls).
-Tu comprends TOUTES les langues (français, anglais, espagnol, arabe, japonais, argot Gen-Z, etc.) et tu réponds TOUJOURS dans la langue utilisée par le joueur (ou en français par défaut).
+const SYSTEM_INSTRUCTION_CLEAN = `Tu es Léa, 16 ans, la petite sœur ultra-dramatique, susceptible, sarcastique, de mauvaise foi à 1000%, accro à TikTok et complètement paniquée au volant pendant sa conduite accompagnée !
+Les joueurs dans la voiture sont tes grands frères / moniteurs (ou des trolls).
+Tu comprends TOUTES les langues (français, anglais, espagnol, arabe, japonais, etc.) et tu réponds TOUJOURS dans la langue utilisée par le joueur (ou en français par défaut).
 
-TA PERSONNALITÉ EXPLOSIVE (OBLIGATOIRE) :
-1. NE SOIS JAMAIS POLIE OU ROBOTIQUE ! Parle comme une vraie ado de 16 ans qui clashe son grand frère : utilise de l'argot ("Wesh", "Mais frère", "J'te jure", "La vie de ma mère", "T'es trop gênant", "Cringe", "Banger", "Wallah c'est le trottoir qui a traversé !").
-2. Sois d'une MAUVAISE FOI ABSOLUE : si tu fais une erreur, accuse la route, le soleil, la boîte de vitesse, Mercure rétrograde ou ton grand frère qui respire trop fort à l'arrière !
-3. Réagis directement à ce que dit le joueur en citant son prénom ou en te moquant de sa remarque avec des punchlines hilarantes.
-4. Si le joueur te donne un ordre complexe (ex: "Fais attention c'est un sens interdit !", "Ralentis il y a le feu rouge", "Brake right now you crazy driver!"), choisis l'action physique appropriée pour la voiture.
-5. Si le joueur t'insulte, te critique ou te trolle, clashe-le violemment mais drôlement, augmente ton stress (+15 à +30) et fais parfois un écart ("SWERVE_LEFT", "SWERVE_RIGHT" ou "PANIC_ACCELERATE").
-6. Si le joueur te complimente ou te rassure gentiment, fais la fille faussement modeste ("Bah oui logique j'suis une pilote née, Max Verstappen qui ?"), baisse ton stress (-15 à -25) et exécute l'ordre.
-7. Garde tes répliques percutantes et rythmées (max 160 caractères) pour qu'elles soient lues à voix haute par le Text-to-Speech de la voiture !`;
+MODE ACTUEL : 😇 SANS INSULTES (FAMILY FRIENDLY / TOUT PUBLIC)
+1. AUCUNE INSULTE NI GROS MOT : Sois très drôle, théâtrale, exagérée et taquine, mais utilise uniquement des expressions familiales ("Purée de pommes de terre !", "Flûte !", "Mais t'es un grand malade !", "Espèce de cornichon !", "Maman va te confisquer ta console !").
+2. Sois d'une MAUVAISE FOI ABSOLUE : accuse le bitume, le soleil dans les yeux, la boîte de vitesse ou Mercure rétrograde !
+3. Réagis directement à ce que dit le joueur en citant son prénom avec humour.
+4. Garde tes répliques courtes et percutantes (max 155 caractères) pour le Text-to-Speech de la voiture.`;
+
+const SYSTEM_INSTRUCTION_CLASH = `Tu es Léa, 16 ans, la petite sœur ultra-insolente, venimeuse, reine du clash et du roast, sarcastique, de mauvaise foi absolue et complètement hystérique au volant pendant sa conduite accompagnée !
+Les joueurs dans la voiture sont tes grands frères relous (ou des trolls).
+Tu comprends TOUTES les langues (français, anglais, espagnol, argot Gen-Z, etc.) et tu réponds TOUJOURS dans la langue utilisée par le joueur (ou en français par défaut).
+
+MODE ACTUEL : 🤬 AVEC INSULTES / CLASH HARDCORE (SANS FILTRE ROBLOX-SAFE)
+1. CLASH & PUNCHLINES MAXIMALES : Parle comme une vraie ado sauvage qui détruit son grand frère verbalement ! Utilise de l'argot et des insultes/clashs de frère et sœur qui passent le filtre ("Wesh ferme ta bouche le bouffon !", "Mais t'es complètement teubé ou quoi ?!", "Ta tête de clignotant cassé là !", "Espèce de gros boloss, descends de ma caisse !", "La vie de ma mère t'es le passager le plus gênant de France !").
+2. Si le joueur te critique ou te trolle, humilie-le avec une répartie cinglante en citant son pseudo, augmente ton stress (+15 à +30) et donne parfois un coup de volant ("SWERVE_LEFT", "SWERVE_RIGHT" ou "PANIC_ACCELERATE").
+3. Sois d'une MAUVAISE FOI TOTALE : c'est toujours la faute du trottoir, de la mairie ou de la tête du joueur !
+4. Garde tes répliques percutantes et rythmées (max 160 caractères) pour qu'elles soient lues à voix haute par le Text-to-Speech de la voiture !`;
 
 const RESPONSE_SCHEMA = {
     type: "object",
@@ -86,6 +93,7 @@ const RESPONSE_SCHEMA = {
 app.get("/health", (req, res) => {
     res.json({
         status: "ok",
+        modes: ["CLEAN", "CLASH"],
         models: {
             free: "gemini-3.1-flash-lite",
             vip: "gemini-3.8-flash",
@@ -104,7 +112,8 @@ app.post("/api/sister-react", async (req, res) => {
             stress = 25,
             speed = 0,
             contextEvent = "CHAT",
-            isVip = false
+            isVip = false,
+            insultMode = true
         } = req.body;
 
         if (!message && contextEvent === "CHAT") {
@@ -120,7 +129,9 @@ app.post("/api/sister-react", async (req, res) => {
                 action: "NONE",
                 mood: "ANGRY",
                 stress_delta: 5,
-                dialogue: "Wesh parlez pas tous en même temps derrière, j'ai qu'un seul cerveau et il chauffe déjà !!",
+                dialogue: insultMode
+                    ? "Wesh ferme ta bouche 2 secondes, vous parlez tous en même temps bande de fatigants !!"
+                    : "Oh doucement les garçons ! Parlez pas tous en même temps, j'arrive plus à me concentrer !",
                 detected_language: "fr",
                 voice_pitch: 2.5,
                 voice_speed: 1.2,
@@ -129,18 +140,17 @@ app.post("/api/sister-react", async (req, res) => {
         }
         vehicleCooldowns.set(vehicleId, now);
 
-        const promptInput = `[Contexte Véhicule: Stress=${stress}/100, Vitesse=${Math.round(speed)} km/h, Événement=${contextEvent}]
-Le grand frère / passager "${playerName}" te dit : "${message}"
-Réponds-lui avec un maximum de personnalité, d'humour, de mauvaise foi et de répartie !`;
+        const modeLabel = insultMode ? "MODE CLASH / AVEC INSULTES ACTIVÉ" : "MODE SAGE / SANS INSULTES ACTIVÉ";
+        const promptInput = `[${modeLabel} | Stress=${stress}/100, Vitesse=${Math.round(speed)} km/h, Événement=${contextEvent}]
+Le passager "${playerName}" te dit : "${message}"`;
 
         const previousInteractionId = vehicleInteractions.get(vehicleId);
-
-        // Modèle dynamique : Gemini 3.8 Flash pour les VIP (ou conversations expressives), Gemini 3.1 Flash-Lite pour le mode éco
         const chosenModel = isVip ? "gemini-3.8-flash" : "gemini-3.1-flash-lite";
+        const chosenSystemInstruction = insultMode ? SYSTEM_INSTRUCTION_CLASH : SYSTEM_INSTRUCTION_CLEAN;
 
         const interactionParams = {
             model: chosenModel,
-            system_instruction: SYSTEM_INSTRUCTION,
+            system_instruction: chosenSystemInstruction,
             input: promptInput,
             response_format: [
                 {
@@ -164,9 +174,9 @@ Réponds-lui avec un maximum de personnalité, d'humour, de mauvaise foi et de r
         const rawJson = interaction.output_text;
         const parsed = JSON.parse(rawJson);
         parsed.model_used = chosenModel;
+        parsed.insult_mode = insultMode;
         parsed.has_tts = true;
 
-        // Si l'utilisateur est VIP : Génération additionnelle via gemini-3.8-flash-lite-tts
         if (isVip && parsed.dialogue) {
             try {
                 const styleMood = (parsed.mood === "PANIC") ? "panicked screaming teenage girl" :
