@@ -1,0 +1,20 @@
+{
+  "name": "conduite-accompagnee-ma-soeur-proxy",
+  "version": "1.0.0",
+  "description": "Serveur Proxy Gemini 3.8 Flash (Interactions API) pour le jeu Roblox Conduite Accompagnée : Ma Sœur",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.29.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
